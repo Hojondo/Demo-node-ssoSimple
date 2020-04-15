@@ -64,10 +64,10 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.set('port', process.env.PORT || 3001);
+// app.set('port', 3001);
 
-http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+http.createServer(app).listen(3001, function(){
+  console.log('Express server listening on port 3001');
 });
 
 module.exports = app;

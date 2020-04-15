@@ -16,12 +16,11 @@ router.get('/', function (req, res, next) {
   }
   //如果没有本站信息，又没有token，便去passport登录鉴权
   if (!token) {
-    res.redirect('http://passport.com?from=a.com');
+    res.redirect('http://localhost:3000?from=localhost:3001');
     return;
   }
   //存在token的情况下，去passport主站检查该token对应用户是否存在，
   //存在并返回对应userid
-  //这段代码是大坑！！！设置的代理request不起效，调了3小时
   request(
     'http://127.0.0.1:3000/check_token?token=' + token + '&t=' + new Date().getTime(),
     function (error, response, data) {
@@ -35,7 +34,7 @@ router.get('/', function (req, res, next) {
           userid = data.userid;
           //有问题就继续登录
           if (!userid) {
-            res.redirect('http://passport.com?from=a.com');
+            res.redirect('http://localhost:3000?from=localhost:3001');
             return;
           }
           //取得userid后，系统便认为有权限去数据库根据用户id获取用户信息
@@ -48,10 +47,10 @@ router.get('/', function (req, res, next) {
           return;
         } else {
           //验证失败，跳转
-          res.redirect('http://passport.com?from=a.com');
+          res.redirect('http://localhost:3000?from=localhost:3001');
         }
       } else {
-        res.redirect('http://passport.com?from=a.com');
+        res.redirect('http://localhost:3000?from=localhost:3001');
         return;
       }
     });

@@ -8,7 +8,7 @@ var fs = require('fs');
 router.get('/', function (req, res, next) {
   if (!req.query.from) {
     res.render('index', {
-      title: '统一登录passport'
+      title: '统一登录passport 在user中心直接登'
     });
     return;
   }
@@ -35,20 +35,24 @@ router.get('/', function (req, res, next) {
         return;
       }
       //如果不存在便引导至登录页重新登录
-      res.redirect('/');
+      res.render('index', {
+        title: '统一登录passport - 客户端有token 但服务器没'
+      });
     });
   } else {
     res.render('index', {
-      title: '统一登录passport'
+      title: '统一登录passport - 客户端没有token'
     });
   }
 });
-
+/**
+ * 登陆 submit
+ */
 router.post('/', function (req, res, next) {
-  if (!req.query.from) return;
+  var from = req.query.from;
+
   var name = req.body.name;
   var pwd = req.body.password;
-  var from = req.query.from;
   var token = new Date().getTime() + '_';
   var cookieObj = {};
   var token_path = path.resolve() + '/token_user.json';
@@ -68,11 +72,43 @@ router.post('/', function (req, res, next) {
       //存回去
       fs.writeFile(token_path, JSON.stringify(data), function (err) {
         if (err) throw err;
+        if (!from) res.send('登陆成功，原地跳吧');
+        else res.redirect('http://' + from + '?token=' + token);
       });
     });
-    res.redirect('http://' + from + '?token=' + token);
   } else {
     console.log('登录失败');
   }
+});
+/**
+ * 进去 退出页面
+ */
+router.get('/logout', function (req, res, next) {
+  if (!req.query.from || !req.query.user) {
+    res.send('logout who?')
+    return;
+  }
+  var user = req.query.user;
+  var token_path = path.resolve() + '/token_user.json';
+  //将token与用户的映射 移出 文件
+  fs.readFile(token_path, 'utf8', function (err, data) {
+    if (err) throw err;
+    if (!data) data = '{}';
+    dataObj = JSON.parse(data);
+    // 找到name对应的key-val, delete
+    for (let k in dataObj) {
+      if (k.match(/(?<=\_).*$/g)[0] === user) {
+        delete dataObj[k]
+        break;
+      }
+    }
+    //存回去
+    fs.writeFile(token_path, JSON.stringify(dataObj), function (err) {
+      if (err) throw err;
+      res.send('退出成功')
+      // res.redirect('http://' + req.query.from);
+    });
+  });
+
 });
 module.exports = router;
